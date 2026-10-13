@@ -16,14 +16,15 @@
     "vue-router": "^4.4.0"
   },
   "devDependencies": {
+    "@nuxt/vite-builder": "^3.21.11",
     "@tailwindcss/postcss": "^4.1.0",
     "@types/node": "^22.10.0",
     "tailwindcss": "^4.1.0",
     "typescript": "^5.6.0",
     "vue-tsc": "^2.1.0"
   },
-  "supportedArchitectures": {
-    "os": ["win32", "linux"],
-    "cpu": ["x64"]
+  "optionalDependencies": {
+    "@rolldown/binding-linux-x64-gnu": "^1.2.13",
+    "@rolldown/binding-win32-x64-msvc": "^1.2.13"
   }
 }
