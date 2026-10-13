@@ -32,7 +32,7 @@ class Settings(BaseSettings):
 
     # NoDecode keeps pydantic-settings from JSON-parsing these; the CSV splitting happens in
     # the validator below, which otherwise never runs for values coming from .env.
-    cors_origins: Annotated[list[str], NoDecode] = ["http://localhost:3000"]
+    cors_origins: Annotated[list[str], NoDecode] = ["*"]
     cors_origin_regex: str = r"^https://.*\.onrender\.com$"
 
     nvidia_api_key: str = ""

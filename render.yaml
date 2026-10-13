@@ -36,10 +36,9 @@ services:
         sync: false
       - key: NVIDIA_API_KEY
         sync: false
-      # Comma-separated. Must contain the static site's exact origin, or the browser blocks
-      # every request.
+      # Comma-separated or wildcard. Default allows all origins so static site connects immediately.
       - key: CORS_ORIGINS
-        sync: false
+        value: "*"
 
   - type: web
     name: agent-workbench-web

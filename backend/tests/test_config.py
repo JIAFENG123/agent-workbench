@@ -53,3 +53,13 @@ def test_cors_origin_regex_matches_render_domains() -> None:
     assert pattern.match("https://agent-workbench-web-yvz3.onrender.com") is not None
     assert pattern.match("https://foo.onrender.com") is not None
     assert pattern.match("http://evil-onrender.com") is None
+
+
+def test_cors_headers_on_responses() -> None:
+    from starlette.testclient import TestClient
+
+    from app.main import app
+
+    client = TestClient(app)
+    res = client.get("/healthz", headers={"Origin": "https://agent-workbench-web-yvz3.onrender.com"})
+    assert res.headers.get("access-control-allow-origin") is not None
