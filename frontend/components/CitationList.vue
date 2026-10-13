@@ -5,10 +5,11 @@ defineProps<{ citations: Citation[] }>()
 
 function normalizeScore(score: number): number {
   if (score >= 0 && score <= 1) return score
-  // Sigmoid fallback for raw logits (-inf, +inf)
-  if (score >= 40) return 1
-  if (score <= -40) return 0
-  return 1 / (1 + Math.exp(-score))
+  // Calibrated sigmoid for raw logits (NVIDIA reranker logits are centered around -4.5)
+  const x = (score - (-4.5)) / 1.8
+  if (x >= 40) return 1
+  if (x <= -40) return 0
+  return 1 / (1 + Math.exp(-x))
 }
 
 function displayScore(score: number): string {

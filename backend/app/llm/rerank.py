@@ -22,13 +22,21 @@ TRUNCATE = "END"
 MAX_PASSAGES = 512
 
 
-def _sigmoid(val: float) -> float:
-    """Map unbounded logits (-inf, +inf) to probabilities in (0, 1)."""
-    if val >= 40.0:
+def _calibrate_logit(val: float, center: float = -4.5, temp: float = 1.8) -> float:
+    """Calibrate cross-encoder logits to human-intuitive [0, 1] relevance probabilities.
+
+    NVIDIA's llama-nemotron-rerank outputs unnormalized logits centered around -4.5 for
+    typical domain passages (-3 is a strong hit, -5 is moderate context, -7 is irrelevant).
+    Raw sigmoid maps -3 to only ~4.7%, which makes highly relevant citations appear as
+    single-digit percentages. Temperature and bias scaling aligns the distribution to
+    standard relevance expectations (strong hits ~70-98%, moderate ~40-60%, weak <25%).
+    """
+    x = (val - center) / temp
+    if x >= 40.0:
         return 1.0
-    if val <= -40.0:
+    if x <= -40.0:
         return 0.0
-    return 1.0 / (1.0 + math.exp(-val))
+    return 1.0 / (1.0 + math.exp(-x))
 
 
 @dataclass
@@ -92,7 +100,7 @@ class RerankClient:
                 continue
             val = float(score)
             if is_logit or val < 0.0 or val > 1.0:
-                val = _sigmoid(val)
+                val = _calibrate_logit(val)
             parsed.append(RerankResult(index=int(row.get("index", 0)), score=val))
         # The API documents a descending sort already; re-sorting is cheap insurance against
         # an endpoint that returns the raw order.
