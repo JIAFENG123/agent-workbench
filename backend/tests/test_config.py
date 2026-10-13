@@ -39,3 +39,17 @@ def test_database_url_normalization_sslmode_disable() -> None:
 def test_database_url_preserves_existing_asyncpg() -> None:
     s = Settings(database_url="postgresql+asyncpg://postgres:postgres@localhost:5432/workbench")
     assert s.database_url == "postgresql+asyncpg://postgres:postgres@localhost:5432/workbench"
+
+
+def test_cors_origins_strips_trailing_slash() -> None:
+    s = Settings(cors_origins="https://my-app.onrender.com/, http://localhost:3000/")  # type: ignore[arg-type]
+    assert s.cors_origins == ["https://my-app.onrender.com", "http://localhost:3000"]
+
+
+def test_cors_origin_regex_matches_render_domains() -> None:
+    import re
+    s = Settings()
+    pattern = re.compile(s.cors_origin_regex)
+    assert pattern.match("https://agent-workbench-web-yvz3.onrender.com") is not None
+    assert pattern.match("https://foo.onrender.com") is not None
+    assert pattern.match("http://evil-onrender.com") is None
