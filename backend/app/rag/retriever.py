@@ -116,8 +116,13 @@ async def retrieve(
         fused_scores = dict(fused)
         candidate_ids = [chunk_id for chunk_id, _ in fused]
         loaded = await load_chunks_by_ids(session, tenant_id=tenant_id, chunk_ids=candidate_ids)
+        max_fused = max(fused_scores.values()) if fused_scores else 1.0
         candidates: list[tuple[Chunk, str, float]] = [
-            (loaded[chunk_id][0], loaded[chunk_id][1], fused_scores.get(chunk_id, 0.0))
+            (
+                loaded[chunk_id][0],
+                loaded[chunk_id][1],
+                (fused_scores.get(chunk_id, 0.0) / max_fused) if max_fused > 0 else 0.0,
+            )
             for chunk_id, _ in fused
             if chunk_id in loaded
         ]

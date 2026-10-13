@@ -2,6 +2,24 @@
 import type { Citation } from '~/types/api'
 
 defineProps<{ citations: Citation[] }>()
+
+function normalizeScore(score: number): number {
+  if (score >= 0 && score <= 1) return score
+  // Sigmoid fallback for raw logits (-inf, +inf)
+  if (score >= 40) return 1
+  if (score <= -40) return 0
+  return 1 / (1 + Math.exp(-score))
+}
+
+function displayScore(score: number): string {
+  const prob = normalizeScore(score)
+  return `${(prob * 100).toFixed(1)}%`
+}
+
+function scorePercent(score: number): number {
+  const prob = normalizeScore(score)
+  return Math.min(100, Math.max(8, Math.round(prob * 100)))
+}
 </script>
 
 <template>
@@ -23,15 +41,15 @@ defineProps<{ citations: Citation[] }>()
         </span>
       </div>
 
-      <div v-if="citation.score" class="mt-2 flex items-center justify-between text-[10px] text-ink-400">
+      <div v-if="citation.score !== undefined && citation.score !== null" class="mt-2 flex items-center justify-between text-[10px] text-ink-400">
         <div class="flex items-center gap-1.5 font-mono">
           <span>相关度得分</span>
-          <span class="text-accent-300">{{ citation.score.toFixed(4) }}</span>
+          <span class="font-semibold text-accent-300">{{ displayScore(citation.score) }}</span>
         </div>
-        <div class="h-1 w-16 overflow-hidden rounded-full bg-white/[0.06]">
+        <div class="h-1.5 w-16 overflow-hidden rounded-full bg-white/[0.06]">
           <div
-            class="h-full rounded-full bg-gradient-to-r from-accent-500 to-indigo-400"
-            :style="{ width: `${Math.min(100, Math.max(10, citation.score * 100))}%` }"
+            class="h-full rounded-full bg-gradient-to-r from-accent-500 to-indigo-400 transition-all duration-300"
+            :style="{ width: `${scorePercent(citation.score)}%` }"
           />
         </div>
       </div>

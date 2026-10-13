@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import asyncio
+import math
 import time
 from dataclasses import dataclass
 from typing import Any
@@ -19,6 +20,15 @@ settings = get_settings()
 # truncation is requested explicitly.
 TRUNCATE = "END"
 MAX_PASSAGES = 512
+
+
+def _sigmoid(val: float) -> float:
+    """Map unbounded logits (-inf, +inf) to probabilities in (0, 1)."""
+    if val >= 40.0:
+        return 1.0
+    if val <= -40.0:
+        return 0.0
+    return 1.0 / (1.0 + math.exp(-val))
 
 
 @dataclass
@@ -72,6 +82,7 @@ class RerankClient:
 
         parsed: list[RerankResult] = []
         for row in rows:
+            is_logit = "logit" in row
             score = row.get("logit")
             if score is None:
                 score = row.get("relevance_score")
@@ -79,7 +90,10 @@ class RerankClient:
                 score = row.get("score")
             if score is None:
                 continue
-            parsed.append(RerankResult(index=int(row.get("index", 0)), score=float(score)))
+            val = float(score)
+            if is_logit or val < 0.0 or val > 1.0:
+                val = _sigmoid(val)
+            parsed.append(RerankResult(index=int(row.get("index", 0)), score=val))
         # The API documents a descending sort already; re-sorting is cheap insurance against
         # an endpoint that returns the raw order.
         parsed.sort(key=lambda item: item.score, reverse=True)
