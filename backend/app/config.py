@@ -3,6 +3,7 @@ from typing import Annotated, Any
 
 from pydantic import field_validator
 from pydantic_settings import BaseSettings, NoDecode, SettingsConfigDict
+from sqlalchemy.engine import make_url
 
 
 class Settings(BaseSettings):
@@ -102,6 +103,40 @@ class Settings(BaseSettings):
         if isinstance(value, str):
             return [item.strip() for item in value.split(",") if item.strip()]
         return value
+
+    @field_validator("database_url", mode="after")
+    @classmethod
+    def _normalize_database_url(cls, value: str) -> str:
+        """Normalize database URL for async runtime (asyncpg).
+
+        Cloud providers (Render, Neon, Supabase) typically supply URLs starting with
+        ``postgres://`` or ``postgresql://`` and query parameter ``sslmode=require``.
+        SQLAlchemy's default PostgreSQL DBAPI is psycopg2 (synchronous), which fails
+        with ModuleNotFoundError. Furthermore, asyncpg accepts ``ssl=require`` rather
+        than ``sslmode=require``. This validator ensures any standard Postgres URL works
+        seamlessly with create_async_engine.
+        """
+        if not value:
+            return value
+        try:
+            url = make_url(value)
+        except Exception:
+            return value
+
+        driver = url.drivername
+        if driver in ("postgres", "postgresql", "postgresql+psycopg", "postgresql+psycopg2"):
+            driver = "postgresql+asyncpg"
+
+        query = dict(url.query)
+        if "sslmode" in query:
+            raw_ssl = query.pop("sslmode")
+            ssl_val = raw_ssl[0] if isinstance(raw_ssl, tuple) else raw_ssl
+            if isinstance(ssl_val, str) and ssl_val.lower() not in ("disable", "allow", "prefer"):
+                query["ssl"] = ssl_val
+        query.pop("channel_binding", None)
+        query.pop("gssencmode", None)
+
+        return url.set(drivername=driver, query=query).render_as_string(hide_password=False)
 
     @property
     def llm_enabled(self) -> bool:
