@@ -1,0 +1,196 @@
+@import 'tailwindcss';
+
+/* Tailwind v4 detects sources automatically, but the stylesheet lives two levels down in
+   assets/css, so the project root is declared explicitly. node_modules is skipped by default. */
+@source '../../';
+
+@theme {
+  --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  --font-mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+
+  --color-ink-950: #080c14;
+  --color-ink-900: #0e1320;
+  --color-ink-850: #141b2c;
+  --color-ink-800: #1b2337;
+  --color-ink-700: #25304a;
+  --color-ink-600: #374463;
+  --color-ink-500: #4f5f84;
+  --color-ink-400: #7b8ca8;
+  --color-ink-300: #a9b7cc;
+
+  --color-accent-600: #3b58db;
+  --color-accent-500: #4f70f6;
+  --color-accent-400: #6886fa;
+  --color-accent-300: #93a8ff;
+}
+
+@layer base {
+  html {
+    @apply bg-ink-950 text-slate-200 antialiased;
+    font-family: var(--font-sans);
+  }
+
+  body {
+    @apply min-h-screen;
+    background-color: var(--color-ink-950);
+    background-image:
+      radial-gradient(ellipse 70% 50% at 50% -12%, rgba(79, 112, 246, 0.12), transparent 70%),
+      radial-gradient(ellipse 40% 30% at 85% 15%, rgba(139, 92, 246, 0.07), transparent 60%);
+    background-attachment: fixed;
+  }
+
+  /* One ring for every keyboard user, defined once. Nothing removes focus without landing
+     on this rule as the replacement. */
+  :focus-visible {
+    outline: 2px solid var(--color-accent-400);
+    outline-offset: 2px;
+  }
+
+  /* iOS Safari auto-zooms any form control under 16px on focus, which shifts the entire
+     layout and forces a manual pinch back. 1rem keeps the page still. */
+  @media (max-width: 640px) {
+    input,
+    select,
+    textarea {
+      font-size: 1rem;
+    }
+  }
+
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: var(--color-ink-600) transparent;
+  }
+
+  *::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+
+  *::-webkit-scrollbar-thumb {
+    @apply rounded-full bg-ink-700 hover:bg-ink-600;
+  }
+
+  *::-webkit-scrollbar-track {
+    background: transparent;
+  }
+}
+
+/* Modern component surfaces and utilities */
+@layer components {
+  .card {
+    @apply rounded-xl border border-white/[0.08] bg-ink-900/75 backdrop-blur-xl shadow-xl shadow-black/25;
+  }
+
+  .card-subtle {
+    @apply rounded-xl border border-white/[0.05] bg-ink-900/40 backdrop-blur-md;
+  }
+
+  .btn {
+    @apply inline-flex items-center justify-center gap-2 rounded-lg px-4 py-2 text-sm
+      font-medium transition-all duration-150 disabled:cursor-not-allowed disabled:opacity-40;
+  }
+
+  .btn-primary {
+    @apply inline-flex items-center justify-center gap-2 rounded-lg px-4 py-2 text-sm
+      font-medium text-white transition-all duration-150 disabled:cursor-not-allowed disabled:opacity-40
+      bg-gradient-to-r from-accent-500 via-indigo-600 to-accent-600 hover:from-accent-400 hover:via-indigo-500 hover:to-accent-500
+      shadow-md shadow-accent-500/20 hover:shadow-lg hover:shadow-accent-500/30 active:scale-[0.98];
+  }
+
+  .btn-ghost {
+    @apply inline-flex items-center justify-center gap-2 rounded-lg px-3 py-1.5 text-sm
+      font-medium transition-all duration-150 disabled:cursor-not-allowed disabled:opacity-40
+      border border-white/10 bg-white/[0.03] text-slate-300 hover:border-white/20 hover:bg-white/[0.07] hover:text-white;
+  }
+
+  .field {
+    @apply w-full rounded-lg border border-white/[0.08] bg-ink-850/80 px-3 py-2 text-sm text-slate-100
+      placeholder:text-ink-400/70 focus:border-accent-400 focus:bg-ink-850 focus:ring-2 focus:ring-accent-400/20 transition-all outline-none;
+  }
+
+  .chip {
+    @apply inline-flex items-center rounded-full border border-white/[0.08] bg-white/[0.04] px-2.5 py-0.5 font-mono text-[11px]
+      text-slate-300;
+  }
+
+  .kbd {
+    @apply inline-flex items-center rounded border border-white/10 bg-ink-800/80 px-1.5 py-0.5 font-mono text-[10px] text-ink-300 shadow-xs;
+  }
+}
+
+@keyframes aw-pulse-ring {
+  0% {
+    box-shadow: 0 0 0 0 rgba(79, 124, 255, 0.5);
+  }
+  70% {
+    box-shadow: 0 0 0 6px rgba(79, 124, 255, 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(79, 124, 255, 0);
+  }
+}
+
+.aw-active-node {
+  animation: aw-pulse-ring 1.6s infinite;
+}
+
+.aw-caret::after {
+  content: '▍';
+  @apply ml-0.5 text-accent-400;
+  animation: aw-blink 1s step-end infinite;
+}
+
+@keyframes aw-blink {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0;
+  }
+}
+
+/* Loading primitives. `border-current` lets the spinner inherit whatever text colour it is
+   dropped into, so one class works on both the primary and ghost buttons. */
+.aw-spinner {
+  @apply inline-block h-3.5 w-3.5 shrink-0 rounded-full border-2 border-current border-t-transparent;
+  animation: aw-spin 0.6s linear infinite;
+}
+
+.aw-skeleton {
+  @apply animate-pulse rounded bg-ink-800;
+}
+
+@keyframes aw-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes aw-fade {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.3;
+  }
+}
+
+/* Reduced motion keeps the signal, drops the movement: the spinner fades instead of
+   spinning so "still working" never becomes invisible. */
+@media (prefers-reduced-motion: reduce) {
+  .aw-active-node,
+  .aw-skeleton {
+    animation: none;
+  }
+
+  .aw-caret::after {
+    animation: none;
+    opacity: 1;
+  }
+
+  .aw-spinner {
+    animation: aw-fade 1.4s ease-in-out infinite;
+  }
+}

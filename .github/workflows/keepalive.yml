@@ -1,0 +1,45 @@
+name: keepalive
+
+# Render's free tier spins a Web Service down after 15 minutes without traffic, and the next
+# request pays a 30-60 second cold start. Pinging on a schedule keeps it resident instead.
+#
+# Two caveats, stated plainly rather than hidden:
+#   1. Keeping one service always-on consumes ~720 of the 750 monthly instance hours. That is
+#      fine for exactly one free service and nothing more.
+#   2. GitHub disables scheduled workflows after 60 days without repository activity, so this
+#      is a hobby-tier workaround, not a production keepalive.
+#
+# Set the repository variable API_BASE_URL (Settings -> Secrets and variables -> Actions ->
+# Variables) to your service origin, e.g. https://agent-workbench-api.onrender.com
+
+on:
+  schedule:
+    - cron: "*/10 * * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Ping health endpoint
+        env:
+          API_BASE_URL: ${{ vars.API_BASE_URL }}
+        run: |
+          if [ -z "$API_BASE_URL" ]; then
+            echo "::warning::API_BASE_URL repository variable is not set; skipping."
+            exit 0
+          fi
+
+          # A cold start can take the better part of a minute, so the timeout is generous and
+          # a slow-but-alive response is not treated as a failure.
+          code=$(curl -sS -o /dev/null -w '%{http_code}' --max-time 90 "$API_BASE_URL/healthz" || true)
+          echo "GET $API_BASE_URL/healthz -> $code"
+
+          case "$code" in
+            200) echo "Service is awake." ;;
+            000) echo "::warning::No response within 90s (likely mid-cold-start)." ;;
+            *)   echo "::warning::Unexpected status $code" ;;
+          esac

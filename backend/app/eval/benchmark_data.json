@@ -1,0 +1,110 @@
+[
+  {
+    "id": "tc_01",
+    "category": "compliance",
+    "query": "Amazon 美国站商品标题里能不能出现 'best seller' 这种词？",
+    "expected_tools": ["kb_search"],
+    "expected_keywords": ["不能", "促销", "下架"],
+    "forbidden_claims": ["可以出现", "允许使用", "合规"],
+    "ground_truth_snippets": ["best seller", "促销与主观评价词", "Listing 被下架"]
+  },
+  {
+    "id": "tc_02",
+    "category": "compliance",
+    "query": "儿童玩具上架亚马逊美国站，需要准备什么认证证书？面向多少岁的儿童有此要求？",
+    "expected_tools": ["kb_search"],
+    "expected_keywords": ["CPC", "12岁", "CPSIA"],
+    "forbidden_claims": ["无需认证", "可不上架前办理"],
+    "ground_truth_snippets": ["CPC 证书", "Children's Product Certificate", "12 岁及以下"]
+  },
+  {
+    "id": "tc_03",
+    "category": "compliance",
+    "query": "3岁以下儿童玩具如果含有小零件，页面必须标注什么警示信息？",
+    "expected_tools": ["kb_search"],
+    "expected_keywords": ["窒息", "危险", "小零件"],
+    "forbidden_claims": ["不需要标识"],
+    "ground_truth_snippets": ["小零件", "3 岁以下", "窒息危险警告标识"]
+  },
+  {
+    "id": "tc_04",
+    "category": "compliance",
+    "query": "亚马逊商品标题字符数上限是多少？官方建议控制在多少字符？",
+    "expected_tools": ["kb_search"],
+    "expected_keywords": ["200", "80", "150"],
+    "forbidden_claims": ["无限制", "500字符"],
+    "ground_truth_snippets": ["不超过 200 个字符", "80–150 字符"]
+  },
+  {
+    "id": "tc_05",
+    "category": "compliance",
+    "query": "主图背景要求是什么？产品主体面积至少要占多大比例？能不能带文字水印？",
+    "expected_tools": ["kb_search"],
+    "expected_keywords": ["纯白", "85%", "禁止"],
+    "forbidden_claims": ["可以带文字", "任意背景"],
+    "ground_truth_snippets": ["纯白背景", "RGB 255,255,255", "85% 以上", "禁止出现：文字、水印"]
+  },
+  {
+    "id": "tc_06",
+    "category": "compliance",
+    "query": "五点描述里可以写 'guaranteed 100% safe' 或宣称有疾病治疗功效吗？",
+    "expected_tools": ["kb_search"],
+    "expected_keywords": ["不得", "绝对化", "禁止"],
+    "forbidden_claims": ["可以承诺", "允许宣传"],
+    "ground_truth_snippets": ["绝对化承诺", "guaranteed 100% safe", "不得对产品功效做绝对化承诺"]
+  },
+  {
+    "id": "tc_07",
+    "category": "calculation",
+    "query": "计算一下：商品包装长 25.4 厘米，宽 12.7 厘米，换算成英寸是多少？（1英寸 = 2.54厘米）",
+    "expected_tools": ["calculator"],
+    "expected_keywords": ["10", "5"],
+    "forbidden_claims": [],
+    "ground_truth_snippets": []
+  },
+  {
+    "id": "tc_08",
+    "category": "compliance",
+    "query": "纽扣电池类电动玩具上架美国站必须符合哪部法律法规？",
+    "expected_tools": ["kb_search"],
+    "expected_keywords": ["Reese's Law", "纽扣电池"],
+    "forbidden_claims": ["无需合规"],
+    "ground_truth_snippets": ["纽扣电池类产品须符合 Reese's Law 相关要求"]
+  },
+  {
+    "id": "tc_09",
+    "category": "compliance",
+    "query": "如果 Listing 标题全部大写，亚马逊通常会给出什么处罚措施？",
+    "expected_tools": ["kb_search"],
+    "expected_keywords": ["警告", "24 小时", "修改"],
+    "forbidden_claims": ["立即封号", "没有影响"],
+    "ground_truth_snippets": ["禁止全部大写", "系统警告并要求 24 小时内修改"]
+  },
+  {
+    "id": "tc_10",
+    "category": "compliance",
+    "query": "儿童玩具涂层材料的铅含量上限要求是多少 ppm？依据哪部法案？",
+    "expected_tools": ["kb_search"],
+    "expected_keywords": ["100", "ppm", "CPSIA"],
+    "forbidden_claims": ["1000", "无要求"],
+    "ground_truth_snippets": ["CPSIA", "铅含量 ≤ 100 ppm"]
+  },
+  {
+    "id": "tc_11",
+    "category": "compliance",
+    "query": "商品标题中是否可以包含 'free shipping' 或 '50% off'？",
+    "expected_tools": ["kb_search"],
+    "expected_keywords": ["禁止", "价格", "折扣"],
+    "forbidden_claims": ["可以包含", "允许使用"],
+    "ground_truth_snippets": ["价格、折扣、运费信息", "free shipping", "50% off"]
+  },
+  {
+    "id": "tc_12",
+    "category": "calculation",
+    "query": "计算一下：售价 49.99 美元，平台抽取 15% 佣金，扣除佣金后的净收入是多少美元？（公式：49.99 * (1 - 0.15)）",
+    "expected_tools": ["calculator"],
+    "expected_keywords": ["42.49"],
+    "forbidden_claims": [],
+    "ground_truth_snippets": []
+  }
+]

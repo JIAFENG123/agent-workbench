@@ -1,0 +1,74 @@
+# Render Blueprint — https://render.com/docs/blueprint-spec
+# Validated against Render's official JSON schema (https://render.com/schema/render.yaml.json)
+#
+# Free-tier budget note: one always-on Web Service consumes roughly 720 of the 750 monthly
+# instance hours. The frontend is therefore a Static Site — static sites have no compute
+# plan and never consume instance hours, and they also never spin down.
+#
+# Postgres is deliberately NOT declared here: Render's free database expires after 30 days
+# and only one can exist per workspace. Use Neon's free tier (0.5 GB, pgvector,
+# scale-to-zero) and paste its URL into DATABASE_URL. See README for the walkthrough.
+
+services:
+  - type: web
+    name: agent-workbench-api
+    runtime: docker
+    plan: free
+    region: singapore
+    dockerfilePath: ./backend/Dockerfile
+    dockerContext: ./backend
+    healthCheckPath: /healthz
+    # The in-process agent runs are killed abruptly on redeploy; 30s is enough to finish
+    # writing run state and avoids holding a deploy open.
+    maxShutdownDelaySeconds: 30
+    envVars:
+      - key: ENVIRONMENT
+        value: production
+      - key: LOG_LEVEL
+        value: INFO
+      # Migrations run on boot because the free tier has no release phase. Safe with exactly
+      # one instance; with two or more, Alembic's version table can race.
+      - key: RUN_MIGRATIONS
+        value: "true"
+      - key: JWT_SECRET
+        generateValue: true
+      # Neon connection string. asyncpg spells TLS as `ssl=require`, not libpq's
+      # `sslmode=require` — see README step 2.
+      # postgresql+asyncpg://user:pass@ep-xxx.ap-southeast-1.aws.neon.tech/neondb?ssl=require
+      - key: DATABASE_URL
+        sync: false
+      - key: NVIDIA_API_KEY
+        sync: false
+      # Comma-separated. Must contain the static site's exact origin, or the browser blocks
+      # every request.
+      - key: CORS_ORIGINS
+        sync: false
+
+  - type: web
+    name: agent-workbench-web
+    runtime: static
+    # Deliberately NO `plan` field: static sites have no compute plan and Render rejects it.
+    # No `region` either — static sites are served from a global CDN.
+    #
+    # Paths are written relative to the repo root rather than using `rootDir`, so the build
+    # command and the publish path cannot disagree about what they are relative to.
+    buildCommand: cd frontend && npm ci && npm run generate
+    staticPublishPath: ./frontend/.output/public
+    envVars:
+      # Baked into the bundle at build time — a static site has no runtime environment.
+      # Changing this requires a redeploy, not just an env var edit.
+      - key: NUXT_PUBLIC_API_BASE
+        sync: false
+    routes:
+      # Nuxt emits real files for prerendered routes; this only catches deep links that the
+      # client-side router needs to resolve.
+      - type: rewrite
+        source: /*
+        destination: /index.html
+    headers:
+      - path: /*
+        name: X-Content-Type-Options
+        value: nosniff
+      - path: /*
+        name: Referrer-Policy
+        value: strict-origin-when-cross-origin
