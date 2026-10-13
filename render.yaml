@@ -18,9 +18,6 @@ services:
     dockerfilePath: ./backend/Dockerfile
     dockerContext: ./backend
     healthCheckPath: /healthz
-    # The in-process agent runs are killed abruptly on redeploy; 30s is enough to finish
-    # writing run state and avoids holding a deploy open.
-    maxShutdownDelaySeconds: 30
     envVars:
       - key: ENVIRONMENT
         value: production
